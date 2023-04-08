@@ -126,5 +126,5 @@ TW_BACKUP_EXCLUSIONS := /data/fonts
 # Maintainer/Version
 TW_DEVICE_VERSION := perilouspike
 
-BOARD_CUSTOM_BOOTIMG := true
-BOARD_CUSTOM_BOOTIMG_MK := $(DEVICE_PATH)/bootimg.mk
+#BOARD_CUSTOM_BOOTIMG := true
+#BOARD_CUSTOM_BOOTIMG_MK := $(DEVICE_PATH)/bootimg.mk
