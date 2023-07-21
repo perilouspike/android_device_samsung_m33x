@@ -172,6 +172,7 @@ TW_BACKUP_EXCLUSIONS := /data/fonts
 TW_EXCLUDE_DEFAULT_USB_INIT := true
 TARGET_USES_MKE2FS := true
 TW_NO_LEGACY_PROPS := true
-
+TW_Y_OFFSET := 80
+TW_H_OFFSET := -80
 # Maintainer/Version
 TW_DEVICE_VERSION := perilouspike
