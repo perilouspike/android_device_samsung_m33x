@@ -1,7 +1,41 @@
+# Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of The Linux Foundation nor
+#       the names of its contributors may be used to endorse or promote
+#       products derived from this software without specific prior written
+#       permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
 on init
     write /proc/sys/kernel/hung_task_timeout_secs 0
-
     start watchdogd
+
+    # unlink /efs > /mnt/vendor/efs
+    rm /efs
+    mkdir /efs
+    mkdir /sec_efs
+
+    # to cut charging battery path
+    write /sys/class/power_supply/battery/siop_level 0
 
 on late-init
     setprop sys.usb.controller 13200000.dwc3
@@ -11,9 +45,34 @@ on late-init
     setprop sys.usb.config adb
 
 on boot
+	start dsmsd
+    setprop ro.boot.vbmeta.avb_version 1.2
+    setprop ro.boot.avb_version 1.2
 
 # Set watchdog timer to 30 seconds and fed it every 10 seconds to get a 20 second margin
 service watchdogd /system/bin/watchdogd 10 20
     class core
     oneshot
     seclabel u:r:watchdogd:s0
+
+service dsmsd /system/bin/dsms
+	class core
+	user dsms
+	group dsms
+	disabled
+	oneshot
+
+on post-fs-data
+    mkdir /data/local/dsms 0110 dsms dsms
+    rm /data/local/dsms/preboot.log
+    write /data/local/dsms/preboot.log ""
+    chown dsms dsms /data/local/dsms/preboot.log
+    chmod 0660 /data/local/dsms/preboot.log
+    restorecon_recursive /data/local/dsms
+
+    mkdir /efs/dsms 0310 dsms dsms
+    chown dsms dsms /efs/dsms/recovery.log
+    chmod 0660 /efs/dsms/recovery.log
+    chown dsms dsms /efs/dsms/factory.log
+    chmod 0660 /efs/dsms/factory.log
+    restorecon_recursive /efs/dsms
